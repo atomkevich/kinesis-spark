@@ -44,7 +44,7 @@ import com.google.common.collect.Lists;
 /**
  * Consumes messages from a Amazon Kinesis streams and does wordcount.
  *
- * This example spins up 1 Kinesis Receiver per shard for the given stream.
+ * This com spins up 1 Kinesis Receiver per shard for the given stream.
  * It then starts pulling from the last checkpointed sequence number of the given stream.
  *
  * Usage: JavaKinesisWordCountASL [app-name] [stream-name] [endpoint-url] [region-name]
@@ -59,8 +59,8 @@ import com.google.common.collect.Lists;
  *      $ export AWS_ACCESS_KEY_ID=[your-access-key]
  *      $ export AWS_SECRET_KEY=<your-secret-key>
  *
- *      # run the example
- *      $ SPARK_HOME/bin/run-example   streaming.JavaKinesisWordCountASL myAppName  mySparkStream \
+ *      # run the com
+ *      $ SPARK_HOME/bin/run-com   streaming.JavaKinesisWordCountASL myAppName  mySparkStream \
  *             https://kinesis.us-east-1.amazonaws.com
  *
  * There is a companion helper class called KinesisWordProducerASL which puts dummy data
@@ -78,31 +78,17 @@ import com.google.common.collect.Lists;
  * See http://spark.apache.org/docs/latest/streaming-kinesis-integration.html for more details on
  * the Kinesis Spark Streaming integration.
  */
-public final class JavaKinesisWordCountASL { // needs to be public for access from run-example
+public final class JavaKinesisWordCountASL { // needs to be public for access from run-com
     private static final Pattern WORD_SEPARATOR = Pattern.compile(" ");
     private static final Logger logger = Logger.getLogger(JavaKinesisWordCountASL.class);
 
     public static void main(String[] args) {
-        // Check that all required args were passed in.
-        if (args.length != 3) {
-            System.err.println(
-                    "Usage: JavaKinesisWordCountASL <stream-name> <endpoint-url>\n\n" +
-                            "    <app-name> is the name of the app, used to track the read data in DynamoDB\n" +
-                            "    <stream-name> is the name of the Kinesis stream\n" +
-                            "    <endpoint-url> is the endpoint of the Kinesis service\n" +
-                            "                   (e.g. https://kinesis.us-east-1.amazonaws.com)\n" +
-                            "Generate data for the Kinesis stream using the example KinesisWordProducerASL.\n" +
-                            "See http://spark.apache.org/docs/latest/streaming-kinesis-integration.html for more\n" +
-                            "details.\n"
-            );
-            System.exit(1);
-        }
 
 
         // Populate the appropriate variables from the given args
-        String kinesisAppName = args[0];
-        String streamName = args[1];
-        String endpointUrl = args[2];
+        String kinesisAppName = "testApp";
+        String streamName = "test";
+        String endpointUrl = "kinesis.us-east-1.amazonaws.com";
 
         // Create a Kinesis client in order to determine the number of shards for the given stream
         AmazonKinesisClient kinesisClient =
@@ -112,7 +98,7 @@ public final class JavaKinesisWordCountASL { // needs to be public for access fr
                 kinesisClient.describeStream(streamName).getStreamDescription().getShards().size();
 
 
-        // In this example, we're going to create 1 Kinesis Receiver/input DStream for each shard.
+        // In this com, we're going to create 1 Kinesis Receiver/input DStream for each shard.
         // This is not a necessity; if there are less receivers/DStreams than the number of shards,
         // then the shards will be automatically distributed among the receivers and each receiver
         // will receive data from multiple shards.
@@ -121,7 +107,7 @@ public final class JavaKinesisWordCountASL { // needs to be public for access fr
         // Spark Streaming batch interval
         Duration batchInterval = new Duration(2000);
 
-        // Kinesis checkpoint interval.  Same as batchInterval for this example.
+        // Kinesis checkpoint interval.  Same as batchInterval for this com.
         Duration kinesisCheckpointInterval = batchInterval;
 
         // Get the region name from the endpoint URL to save Kinesis Client Library metadata in
@@ -139,7 +125,7 @@ public final class JavaKinesisWordCountASL { // needs to be public for access fr
         for (int i = 0; i < numStreams; i++) {
             streamsList.add(
                     KinesisUtils.createStream(jssc, kinesisAppName, streamName, endpointUrl, regionName,
-                            InitialPositionInStream.LATEST, kinesisCheckpointInterval, StorageLevel.MEMORY_AND_DISK_2())
+                            InitialPositionInStream.TRIM_HORIZON, kinesisCheckpointInterval, StorageLevel.MEMORY_AND_DISK_2())
             );
         }
 

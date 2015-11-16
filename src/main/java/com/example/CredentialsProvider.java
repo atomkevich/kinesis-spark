@@ -9,7 +9,7 @@ import com.amazonaws.auth.PropertiesFileCredentialsProvider;
 public abstract class CredentialsProvider {
 
     public static AWSCredentialsProvider getAwsSessionCredentialsProvider() {
-        String path = CredentialsProvider.class.getClassLoader().getResource("key.properties").getPath();
+        String path = CredentialsProvider.class.getClassLoader().getResource("com/example/key.properties").getPath();
         return new PropertiesFileCredentialsProvider(path);
     }
 }
